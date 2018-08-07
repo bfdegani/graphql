@@ -60,6 +60,12 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
                 beforeCreate: (user: UserInstance, options: Sequelize.CreateOptions): void => {
                     const salt = genSaltSync();
                     user.password = hashSync(user.password, salt);
+                },
+                beforeUpdate: (user: UserInstance, options: Sequelize.CreateOptions): void => {
+                    if(user.changed('password')){ //criptografa senha apenas em updates em que a senha é alterada
+                        const salt = genSaltSync();
+                        user.password = hashSync(user.password, salt);
+                    }
                 }
             }
         });

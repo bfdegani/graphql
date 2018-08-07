@@ -1,50 +1,37 @@
 import { makeExecutableSchema } from 'graphql-tools';
+import { merge } from 'lodash'; // faz merge entre atributos de objetos, permitindo que as diferentes definições de resolvers sejam incorporadas ao schema
 
-const user: any[] = [
-    {
-        id: 1,
-        name: 'John',
-        email: 'john@email.com'
-    },
-    {
-        id: 1,
-        name: 'Danny',
-        email: 'danny@email.com'
-    }
-];
+import {Query} from './query';
+import {Mutation} from './mutation';
 
-const typeDefs = `
-    type User{
-        id: ID!
-        name: String!
-        email: String!
-    }
+import { commentTypes } from './resources/comment/comment.schema';
+import { postTypes } from './resources/post/post.schema';
+import { userTypes } from './resources/user/user.schema';
+import { commentsResolvers } from './resources/comment/comment.resolvers';
+import { postResolvers } from './resources/post/post.resolvers';
+import { userResolvers } from './resources/user/user.resolvers';
 
-    type Query{
-        allUsers: [User!]!
-    }
+const resolvers = merge(
+    commentsResolvers, 
+    postResolvers, 
+    userResolvers
+);
 
-    type Mutation {
-        createUser(name: String!, email: String!): User
+const SchemaDefinition = `
+    type Schema {
+        query: Query
+        mutation: Mutation
     }
 `;
 
-const resolvers = {
-    User: { //resolvers triviais. implementads apenas como exemplo, não é necessário pois são implicitos pro graphql
-        id: (user) => user.id,
-        name: (user) => user.name,
-        email: (user) => user.email
-    },
-    Query: {
-        allUsers: () => user
-    },
-    Mutation: {
-        createUser: (parent, args) => {
-            const newUser = Object.assign({id: user.length+1}, args);
-            user.push(newUser);
-            return newUser;
-        }
-    }
-};
-
-export default makeExecutableSchema({typeDefs, resolvers});
+export default makeExecutableSchema({
+    typeDefs: [
+        SchemaDefinition,
+        Query,
+        Mutation,
+        postTypes,
+        userTypes,
+        commentTypes
+    ],
+    resolvers
+});
